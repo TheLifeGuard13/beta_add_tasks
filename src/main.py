@@ -1,31 +1,60 @@
-from src.utils import count_files_from_path, get_format_string, get_nums_multiple, get_sorted_by_price
+import json
+import logging
+from pathlib import Path
 
-dict_ = [
-    {"name": "Apple", "price": 2.50, "category": "fruit", "quantity": 100},
-    {"name": "Grape", "price": 10.30, "category": "fruit", "quantity": 10},
-    {"name": "Banana", "price": 1.20, "category": "fruit", "quantity": 500},
-    {"name": "Cucumber", "price": 6.80, "category": "vegetable", "quantity": 30},
-    {"name": "Onion", "price": 0.75, "category": "vegetable", "quantity": 75},
-]
+from src.utils import get_data_from_api, save_data_to_file, sort_album_by_id, get_info_from_json_file, \
+    get_operation_instances
 
-if __name__ == '__main__':
-    # дополнительное задание №1 к ДЗ №0
-    print(count_files_from_path())
-    print(count_files_from_path(recursive=True))
-    print(count_files_from_path("/home/vlad/PycharmProjects/beta_project"))
-    print(count_files_from_path("/home/vlad/PycharmProjects/beta_project", recursive=True))
 
-    # дополнительное задание №1
-    print(get_sorted_by_price(dict_, "fruit"))
-    print(get_sorted_by_price(dict_, "vegetable"))
-    print(get_sorted_by_price(dict_))
+# Вам дан API https://jsonplaceholder.typicode.com/photos.
+# Все шаги должны логироваться, от старта приложения,
+# до вывода текущего состояния и информации о завершении приложения и общим количеством скачанных картинок.
+#
+# Требования к реализации:
+#
+# Все шаги приложения должны выводиться в консоль (использовать `logging`).
+#
+# Приложение должно принимать аргументы: `album_id` (обязательный) и `limit` (необязательный, по умолчанию 100).
+#
+# Приложение должно скачивать картинки по одной и выводить каждую в консоль
+# с указанием имени файла и номером текущей картинки.
+#
+# В конце работы приложения должна выводиться информация о завершении работы и общем количестве скачанных картинок.
 
-    # дополнительное задание №1
-    print(get_format_string(["hello", "world", "apple", "pear", "banana", "pop"]))
-    print(get_format_string(["", "madam", "racecar", "noon", "level", ""]))
-    print(get_format_string([]))
-    # дополнительное задание №2
-    print(get_nums_multiple([2, 3, 5, 7, 11]))
-    print(get_nums_multiple([-5, -7, -9, -13]))
-    print(get_nums_multiple([1, 2]))
-    print(get_nums_multiple([4]))
+# logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
+#
+# ch = logging.StreamHandler()
+# ch.setLevel(logging.DEBUG)
+#
+# fh = logging.FileHandler('app.log', mode='w')
+# fh.setLevel(logging.WARNING)
+#
+# formatter = logging.Formatter('%(asctime)s - %(module)s - %(levelname)s - %(message)s')
+# fh.setFormatter(formatter)
+#
+# logger.addHandler(ch)
+# logger.addHandler(fh)
+
+
+def main(album_id, limit=100):
+    url = 'https://jsonplaceholder.typicode.com/photos'
+
+    data = get_data_from_api(url)
+
+    file_path = Path(__file__).parent.parent.joinpath('data', 'albums.json')
+    save_data_to_file(file_path, data)
+
+    all_albums = get_info_from_json_file(file_path)
+
+    picked_album_id = sort_album_by_id(all_albums, album_id)[:limit]
+
+    pictures_instances = get_operation_instances(picked_album_id)
+
+    for picture in pictures_instances:
+        print(picture.album_id, picture.id_number)
+        picture.load_picture()
+
+
+if __name__ == "__main__":
+    main(1, 1)

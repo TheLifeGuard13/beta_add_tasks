@@ -1,83 +1,70 @@
-import os
+import json
+
+import requests
+import logging
+
+from src.class_ import Albums
 
 
-def count_files_from_path(path: str = "None", recursive: bool = False) -> dict:
-    """Функция, которая принимает на вход путь до директории и
-    возвращает словарь с количеством папок и файлов директории"""
-    dirs_counter = 0
-    files_counter = 0
-    new_dict = {}
-    current_directory = os.getcwd()
+# logger = logging.getLogger(__name__)
 
-    if path == "None":
-        if not recursive:
-            for dirs in os.listdir(current_directory):
-                if os.path.isdir(os.path.join(current_directory, dirs)):
-                    dirs_counter += 1
-                else:
-                    files_counter += 1
 
-        else:
-            for root, dirs, files in os.walk(current_directory):
-                dirs_counter += len(dirs)
-                files_counter += len(files)
-
+def get_data_from_api(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
     else:
-        if not recursive:
-            for dirs in os.listdir(path):
-                if os.path.isdir(os.path.join(path, dirs)):
-                    dirs_counter += 1
-                else:
-                    files_counter += 1
-        else:
-            for root, dirs, files in os.walk(path):
-                dirs_counter += len(dirs)
-                files_counter += len(files)
-
-    new_dict["files"] = files_counter
-    new_dict["folders"] = dirs_counter
-    return new_dict
+        # logger.error(f"Failed to receive data. Status code: {response.status_code}")
+        return None
 
 
-def get_format_string(any_list: list[str]) -> list[str]:
-    """принимает на вход список строк и возвращает список строк,
-    в которых первая и последняя буквы совпадают"""
-    new_list = []
-    for string in any_list:
-        if string != "":
-            if string[0] == string[-1]:
-                new_list.append(string)
-        else:
-            new_list.append(string)
-    return new_list
+def save_data_to_file(filename, data):
+    with open(filename, 'w') as f:
+        json.dump(data, f)
+        # logger.info("Data saved to file")
 
 
-def get_nums_multiple(any_list: list[int]) -> int:
-    """принимает на вход список целых чисел и возвращает
-    максимальное произведение двух чисел из списка"""
-    if len(any_list) >= 2:
-        sorted_list = sorted([abs(item) for item in any_list])
-        return sorted_list[-1] * sorted_list[-2]
-    else:
-        return 0
+def get_info_from_json_file(filename) -> list[dict]:
+    """открывает файл о словарями в формате json и превращает в формат питон"""
+    with open(filename, encoding="utf-8") as file:
+        return json.load(file)
 
 
-def get_formatted_list_by_date(any_list: list[dict], sort_up: bool = True) -> list[dict]:
-    """упорядочивает словари по дате (со вторым параметром сортировка от меньшей к большей и наоборот)"""
-    if sort_up:
-        sorted_list = sorted(any_list, key=lambda x: x["date"])
-    else:
-        sorted_list = sorted(any_list, key=lambda x: x["date"], reverse=True)
-    return sorted_list
+def sort_album_by_id(all_pictures, album_id):
+    return [picture for picture in all_pictures if picture['albumId'] == album_id]
 
 
-def get_sorted_by_price(any_list: list[dict], category: str = "") -> list[dict]:
-    """Функция должна возвращать список словарей, отсортированных по убыванию стоимости продукта,
-    но только для продуктов из заданной категории. Если категория не задана,
-    то сортировка производится для всех продуктов."""
-    if category != "":
-        new_list = [item for item in any_list if item["category"] == category]
-        sorted_list = sorted(new_list, key=lambda x: x["price"])
-    else:
-        sorted_list = sorted(any_list, key=lambda x: x["price"])
-    return sorted_list
+def get_operation_instances(albums):
+    list_ = []
+    for album in albums:
+        if album:
+            list_.append(
+                Albums(
+                    album_id=album["albumId"],
+                    id_number=album["id"],
+                    title=album["title"],
+                    url=album["url"],
+                    thumbnail_url=album["thumbnailUrl"]
+                )
+            )
+    return list_
+
+# INFO:root:Starting app...
+# INFO:root:Downloading album 1 images...
+# INFO:root:Saving image 1 to photos/1-1.jpg
+# INFO:root:Saving image 2 to photos/1-2.jpg
+# INFO:root:Saving image 3 to photos/1-3.jpg
+# INFO:root:Saving image 4 to photos/1-4.jpg
+# INFO:root:Saving image 5 to photos/1-5.jpg
+# INFO:root:Finished downloading images. Total images downloaded: 5
+
+# import requests
+# from pathlib import Path
+#
+#
+# number = 2
+# data_path = Path(Path(__file__).parent.parent.joinpath('data', 'photos', f'1-{number}.png'))
+# data_path.parent.mkdir(exist_ok=True, parents=True)
+# r = requests.get('https://imgs.xkcd.com/comics/python.png')
+# with open(data_path, 'wb') as f:
+#     f.write(r.content)
