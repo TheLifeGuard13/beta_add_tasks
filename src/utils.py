@@ -1,9 +1,11 @@
+import typing
+
 import requests
 
 from src.class_ import Albums
 
 
-def get_data_from_api(url: str) -> list[dict]:
+def get_data_from_api(url: str) -> typing.Any:
     """
     получает данные по ссылке и возвращает список словарей.
     """
@@ -16,7 +18,7 @@ def sort_album_by_id(all_pictures: list[dict], album_id: int) -> list[dict]:
     """
     сортирует список словарей по albumId
     """
-    return [picture for picture in all_pictures if picture['albumId'] == album_id]
+    return [picture for picture in all_pictures if picture["albumId"] == album_id]
 
 
 def get_operation_instances(albums: list[dict]) -> list[Albums]:
@@ -32,7 +34,7 @@ def get_operation_instances(albums: list[dict]) -> list[Albums]:
                     id_number=album["id"],
                     title=album["title"],
                     url=album["url"],
-                    thumbnail_url=album["thumbnailUrl"]
+                    thumbnail_url=album["thumbnailUrl"],
                 )
             )
     return list_
