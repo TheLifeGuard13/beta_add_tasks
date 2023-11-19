@@ -8,6 +8,7 @@ dict_ = [
     {"name": "Onion", "price": 0.75, "category": "vegetable", "quantity": 75},
 ]
 
+
 if __name__ == '__main__':
     # дополнительное задание №1 к ДЗ №0
     print(count_files_from_path())
